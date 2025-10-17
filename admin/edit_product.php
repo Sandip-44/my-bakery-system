@@ -6,15 +6,30 @@ if (!isset($_SESSION['admin_logged_in'])) {
     exit;
 }
 
+$conn = getDBConnection();
+$id = intval($_GET['id'] ?? 0);
+
+// Fetch existing product
+$stmt = $conn->prepare('SELECT * FROM products WHERE id=? LIMIT 1');
+$stmt->bind_param('i', $id);
+$stmt->execute();
+$res = $stmt->get_result();
+
+if ($res->num_rows === 0) {
+    die('Product not found');
+}
+
+$product = $res->fetch_assoc();
+
+// Update on POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = $_POST['name'];
     $desc = $_POST['description'];
     $price = floatval($_POST['price']);
 
-    $conn = getDBConnection();
-    $stmt = $conn->prepare('INSERT INTO products (name, description, price) VALUES (?, ?, ?)');
-    $stmt->bind_param('ssd', $name, $desc, $price);
-    $stmt->execute();
+    $update = $conn->prepare('UPDATE products SET name=?, description=?, price=? WHERE id=?');
+    $update->bind_param('ssdi', $name, $desc, $price, $id);
+    $update->execute();
 
     header('Location: dashboard.php');
     exit;
@@ -25,20 +40,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <head>
     <meta charset="utf-8">
-    <title>Add Product | Delicious Bakery</title>
+    <title>Edit Product | Delicious Bakery</title>
     <link rel="stylesheet" href="../css/style.css">
     <style>
         body {
             margin: 0;
             font-family: 'Poppins', sans-serif;
-            /* background: #fff8f0; */
+            background: #fff8f0;
             color: #333;
         }
 
-        /* Navbar */
         .navbar {
             background: #e67e22;
-            color: white;
+            /* color: white; */
             padding: 1rem 0;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
@@ -55,7 +69,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .navbar .logo h2 {
             margin: 0;
             font-weight: 700;
-            letter-spacing: 0.5px;
         }
 
         .nav-menu {
@@ -70,19 +83,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: white;
             text-decoration: none;
             font-weight: 500;
-            transition: opacity 0.2s;
         }
 
         .nav-menu a:hover {
             opacity: 0.8;
         }
 
-        /* Container */
         .container {
             width: 90%;
             max-width: 600px;
             margin: 2rem auto;
-            /* background: white; */
+            background: white;
             padding: 2rem 2.5rem;
             border-radius: 16px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
@@ -103,7 +114,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         label {
             font-weight: 600;
             color: #444;
-            margin-bottom: 5px;
         }
 
         input,
@@ -129,7 +139,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         button {
-            background: #27ae60;
+            background: #e67e22;
             color: white;
             border: none;
             padding: 12px;
@@ -141,7 +151,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         button:hover {
-            background: #1e8449;
+            background: #d35400;
         }
 
         .back-link {
@@ -172,25 +182,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </ul>
         </div>
     </nav>
+
     <main class="container">
-        <h2>➕ Add New Product</h2>
+        <h2>✏️ Edit Product</h2>
         <form method="POST">
-            <div class="form-group">
-                <label for="name">Product Name</label>
-                <input id="name" name="name" required>
-            </div>
+            <label for="name">Product Name</label>
+            <input id="name" name="name" value="<?php echo htmlspecialchars($product['name']); ?>" required>
 
-            <div class="form-group">
-                <label for="description">Description</label>
-                <textarea id="description" name="description"></textarea>
-            </div>
+            <label for="description">Description</label>
+            <textarea id="description" name="description"><?php echo htmlspecialchars($product['description']); ?></textarea>
 
-            <div class="form-group">
-                <label for="price">Price ($)</label>
-                <input id="price" name="price" type="number" step="0.01" required>
-            </div>
+            <label for="price">Price ($)</label>
+            <input id="price" name="price" type="number" step="0.01" value="<?php echo htmlspecialchars($product['price']); ?>" required>
 
-            <button type="submit">Save Product</button>
+            <button type="submit">Update Product</button>
         </form>
 
         <a href="dashboard.php" class="back-link">← Back to Dashboard</a>

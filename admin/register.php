@@ -1,30 +1,39 @@
 <?php
 session_start();
-// require_once '../config/database.php';
 require_once '../config/database.php';
-$error = '';
+$message = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username']);
     $password = $_POST['password'];
-    $conn = getDBConnection();
+    $confirm = $_POST['confirm'];
 
-    $stmt = $conn->prepare('SELECT * FROM admin_users WHERE username=? LIMIT 1');
-    $stmt->bind_param('s', $username);
-    $stmt->execute();
-    $res = $stmt->get_result();
+    if ($password !== $confirm) {
+        $message = 'Passwords do not match.';
+    } else {
+        $conn = getDBConnection();
 
-    if ($res->num_rows) {
-        $user = $res->fetch_assoc();
-        if (password_verify($password, $user['password'])) {
-            $_SESSION['admin_logged_in'] = true;
-            $_SESSION['admin_id'] = $user['id'];
-            $_SESSION['admin_username'] = $user['username'];
-            header('Location: dashboard.php');
-            exit;
+        // Check if username already exists
+        $stmt = $conn->prepare('SELECT id FROM admin_users WHERE username=?');
+        $stmt->bind_param('s', $username);
+        $stmt->execute();
+        $stmt->store_result();
+
+        if ($stmt->num_rows > 0) {
+            $message = 'Username already exists.';
+        } else {
+            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+            $stmt = $conn->prepare('INSERT INTO admin_users (username, password) VALUES (?, ?)');
+            $stmt->bind_param('ss', $username, $hashedPassword);
+            if ($stmt->execute()) {
+                $message = '✅ Registration successful! You can now log in.';
+            } else {
+                $message = '❌ Something went wrong. Try again.';
+            }
         }
+        $stmt->close();
+        $conn->close();
     }
-    $error = 'Invalid username or password';
 }
 ?>
 <!doctype html>
@@ -32,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <head>
     <meta charset="utf-8">
-    <title>Admin Login | Delicious Bakery</title>
+    <title>Admin Registration | Delicious Bakery</title>
     <link rel="stylesheet" href="../css/style.css">
     <style>
         body {
@@ -46,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             backdrop-filter: blur(3px);
         }
 
-        .login-card {
+        .register-card {
             background: rgba(255, 255, 255, 0.9);
             padding: 2rem 3rem;
             border-radius: 20px;
@@ -56,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             text-align: center;
         }
 
-        .login-card h2 {
+        .register-card h2 {
             margin-bottom: 1.5rem;
             color: #333;
         }
@@ -83,12 +92,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .form-group input:focus {
-            border-color: #e67e22;
+            border-color: #27ae60;
         }
 
         button {
             width: 100%;
-            background: #e67e22;
+            background: #27ae60;
             border: none;
             padding: 10px;
             color: white;
@@ -100,7 +109,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         button:hover {
-            background: #d35400;
+            background: #1e8449;
+        }
+
+        .alert {
+            background: #e3fcef;
+            color: #2e7d32;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-weight: 500;
         }
 
         .alert-error {
@@ -112,19 +130,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-weight: 500;
         }
 
-        .login-card p {
+        .register-card p {
             margin-top: 10px;
             color: #555;
             font-size: 14px;
+        }
+
+        a {
+            color: #e67e22;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 
 <body>
-    <div class="login-card">
-        <h2>🔐 Admin Login</h2>
-        <?php if ($error): ?>
-            <div class="alert-error"><?php echo $error; ?></div>
+    <div class="register-card">
+        <h2>📝 Admin Registration</h2>
+
+        <?php if ($message): ?>
+            <div class="<?php echo strpos($message, '✅') !== false ? 'alert' : 'alert-error'; ?>">
+                <?php echo $message; ?>
+            </div>
         <?php endif; ?>
 
         <form method="POST">
@@ -132,14 +162,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <label>Username</label>
                 <input type="text" name="username" required>
             </div>
+
             <div class="form-group">
                 <label>Password</label>
                 <input type="password" name="password" required>
             </div>
-            <button type="submit">Login</button>
+
+            <div class="form-group">
+                <label>Confirm Password</label>
+                <input type="password" name="confirm" required>
+            </div>
+
+            <button type="submit">Register</button>
         </form>
 
-        <p>Default: <strong>admin / admin123</strong></p>
+        <p>Already registered? <a href="login.php">Login here</a></p>
     </div>
 </body>
 

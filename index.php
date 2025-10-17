@@ -228,6 +228,8 @@ $conn = getDBConnection();
               <?php echo isset($_SESSION['cart']) ? count($_SESSION['cart']) : 0; ?>
             </span></a>
         </li>
+        <li><a href="admin/register.php">Register</a></li>
+
         <li><a href="admin/login.php">Admin</a></li>
       </ul>
     </div>
