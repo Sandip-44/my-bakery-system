@@ -220,7 +220,7 @@ $conn = getDBConnection();
       <div class="logo">
         <h2>🥐 Delicious Bakery</h2>
       </div>
-      <ul class="nav-menu">
+      <!-- <ul class="nav-menu">
         <li><a href="index.php" class="active">Home</a></li>
         <li><a href="products.php">Products</a></li>
         <li>
@@ -231,7 +231,19 @@ $conn = getDBConnection();
         <li><a href="admin/register.php">Register</a></li>
 
         <li><a href="admin/login.php">Admin</a></li>
+      </ul> -->
+      <ul class="nav-menu">
+        <li><a href="index.php" class="active">Home</a></li>
+        <li><a href="products.php">Products</a></li>
+        <li><a href="cart.php">Cart</a></li>
+        <?php if (isset($_SESSION['user_logged_in'])): ?>
+          <li><a href="users/logout.php">Logout (<?= $_SESSION['user_name']; ?>)</a></li>
+        <?php else: ?>
+          <li><a href="users/login.php">Login</a></li>
+          <li><a href="users/register.php">Register</a></li>
+        <?php endif; ?>
       </ul>
+
     </div>
   </nav>
 

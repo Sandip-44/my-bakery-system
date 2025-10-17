@@ -3,6 +3,11 @@ session_start();
 require_once 'config/database.php';
 $conn = getDBConnection();
 
+if (!isset($_SESSION['user_logged_in'])) {
+  header('Location: users/login.php?redirect=checkout');
+  exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add'])) {
   $pid = intval($_POST['product_id']);
   if (!isset($_SESSION['cart'])) $_SESSION['cart'] = [];
@@ -237,12 +242,24 @@ if (!empty($_SESSION['cart'])) {
       <div class="logo">
         <h2>🥖 Delicious Bakery</h2>
       </div>
-      <ul class="nav-menu">
+      <!-- <ul class="nav-menu">
         <li><a href="index.php">Home</a></li>
         <li><a href="products.php">Products</a></li>
         <li><a href="cart.php" class="active">Cart</a></li>
         <li><a href="admin/login.php">Admin</a></li>
+      </ul> -->
+      <ul class="nav-menu">
+        <li><a href="index.php" class="active">Home</a></li>
+        <li><a href="products.php">Products</a></li>
+        <li><a href="cart.php">Cart</a></li>
+        <?php if (isset($_SESSION['user_logged_in'])): ?>
+          <li><a href="users/logout.php">Logout (<?= $_SESSION['user_name']; ?>)</a></li>
+        <?php else: ?>
+          <li><a href="users/login.php">Login</a></li>
+          <li><a href="users/register.php">Register</a></li>
+        <?php endif; ?>
       </ul>
+
     </div>
   </nav>
 

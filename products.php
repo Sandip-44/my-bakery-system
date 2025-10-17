@@ -184,16 +184,30 @@ $products = $conn->query('SELECT * FROM products');
             <div class="logo">
                 <h2>🥐 Delicious Bakery</h2>
             </div>
-            <ul class="nav-menu">
+            <!-- <ul class="nav-menu">
                 <li><a href="index.php">Home</a></li>
                 <li><a href="products.php" class="active">Products</a></li>
                 <li>
                     <a href="cart.php">Cart <span class="cart-count">
-                            <?php echo isset($_SESSION['cart']) ? count($_SESSION['cart']) : 0; ?>
+                            
                         </span></a>
                 </li>
                 <li><a href="admin/login.php">Admin</a></li>
+            </ul> -->
+            <ul class="nav-menu">
+                <li><a href="index.php" class="active">Home</a></li>
+                <li><a href="products.php">Products</a></li>
+                <li><a href="cart.php">Cart
+                        <?php echo isset($_SESSION['cart']) ? count($_SESSION['cart']) : 0; ?>
+                    </a></li>
+                <?php if (isset($_SESSION['user_logged_in'])): ?>
+                    <li><a href="users/logout.php">Logout (<?= $_SESSION['user_name']; ?>)</a></li>
+                <?php else: ?>
+                    <li><a href="users/login.php">Login</a></li>
+                    <li><a href="users/register.php">Register</a></li>
+                <?php endif; ?>
             </ul>
+
         </div>
     </nav>
 

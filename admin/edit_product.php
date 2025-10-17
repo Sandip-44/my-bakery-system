@@ -80,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .nav-menu a {
-            color: white;
+            /* color: white; */
             text-decoration: none;
             font-weight: 500;
         }
@@ -93,7 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             width: 90%;
             max-width: 600px;
             margin: 2rem auto;
-            background: white;
+            /* background: white; */
             padding: 2rem 2.5rem;
             border-radius: 16px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
